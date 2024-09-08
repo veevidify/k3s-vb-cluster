@@ -1,0 +1,54 @@
+server_ip = "192.168.56.100"
+nodes = {
+  "node0" => "192.168.56.110",
+  "node1" => "192.168.56.111",
+  "node2" => "192.168.56.112"
+}
+
+server_provision = <<-SHELL
+  apt-get -y --force-yes update
+  apt-get install -y wget curl vim tmux openssl git net-tools
+SHELL
+
+node_provision = <<-SHELL
+  apt-get -y --force-yes update
+  apt-get install -y socat conntrack ipset vim tmux
+SHELL
+
+Vagrant.configure("2") do |config|
+  # controlplane
+  config.vm.define "server" do |server|
+    server.vm.box = "debian/bookworm64"
+    server.vm.disk :disk, size: "20GB", primary: true
+    server.vm.hostname = "server"
+    server.vm.network "private_network", ip: server_ip
+    server.vm.synced_folder "./shared", "/vagrant_shared"
+    server.vm.provider "virtualbox" do |v|
+      v.gui = false
+      v.memory = 2048
+      v.cpus = 2
+      v.customize [
+        "modifyvm", :id,
+        "--vram", "23"
+      ]
+    end
+    server.vm.provision "shell", inline: server_provision
+  end
+
+  # worker nodes
+  nodes.each do |node, node_ip|
+    config.vm.define node do |node|
+      node.vm.box = "debian/bookworm64"
+      node.vm.disk :disk, size: "10GB", primary: true
+      node.vm.hostname = node
+      node.vm.network "private_network", ip: node_ip
+      node.vm.synced_folder "./shared", "/vagrant_shared"
+      node.vm.provider "virtualbox" do |v|
+        v.memory = 1024
+        v.cpus = 1
+      end
+      node.vm.provision "shell", inline: node_provision
+    end
+  end
+end
+
