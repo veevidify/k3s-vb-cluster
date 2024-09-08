@@ -12,5 +12,10 @@ vagrant ssh server
 # then
 sudo rcvboxadd reload
 ```
-- repeat for `node0`, `node1`, `node2`, `node3`
+- or from host, whenever box init is stuck:
+```sh
+./fix-startup.sh server
+./fix-startup.sh node0
+```
+- repeat for `node0`, `node1`, `node2`
 
