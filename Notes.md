@@ -1,4 +1,13 @@
 # k3s
+## some prereq
+- apart from getting `vagrant`, `virtualbox` up & working
+- make sure to have installed:
+```sh
+sudo apt-get --no-install-recommends install virtualbox-guest-utils
+vagrant plugin install vagrant-vbguest
+vagrant plugin update
+```
+
 ## start virtualbox VMs
 - start the VMs
 ```sh
@@ -60,7 +69,7 @@ server_provision = <<-SHELL
     export SERVER_IP=192.168.56.100
     export INSTALL_K3S_EXEC="--bind-address=$SERVER_IP --node-external-ip=$SERVER_IP --flannel-iface=eth1"
     curl -sfL https://get.k3s.io | sh -
-    echo "let k3s start .."
+    echo "let k3s start ..."
     sleep 10
     cp /var/lib/rancher/k3s/server/token /vagrant_shared
     cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
