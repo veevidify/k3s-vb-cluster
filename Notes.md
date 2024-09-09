@@ -165,3 +165,8 @@ kubectl get nodes
 kubectl get pods -A -o wide
 ```
 
+```sh
+# host
+kubectl --kubeconfig ./bootstrap/iac/shared/k3s.yaml get nodes
+```
+
