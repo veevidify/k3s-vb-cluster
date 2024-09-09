@@ -113,6 +113,11 @@ export INSTALL_K3S_EXEC="--flannel-iface=eth1"
 # install k3s
 curl -sfL https://get.k3s.io | sh -
 ```
+- check
+```sh
+# root@server:~#
+k get nodes
+```
 - rewrite `Vagrantfile`
 ```ruby
 node_provision = <<-SHELL

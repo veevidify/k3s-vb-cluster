@@ -20,9 +20,10 @@ server_provision = <<-SHELL
 SHELL
 
 node_provision = <<-SHELL
-  apt-get -y --force-yes update
-  apt-get install -y curl vim tmux
-  export K3S_URL=https://#{server_ip}:6443
+    export K3S_TOKEN_FILE=/vagrant_shared/token
+    export K3S_URL=https://#{server_ip}:6443
+    export INSTALL_K3S_EXEC="--flannel-iface=eth1"
+    curl -sfL https://get.k3s.io | sh -
 SHELL
 
 Vagrant.configure("2") do |config|
