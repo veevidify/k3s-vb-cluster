@@ -57,11 +57,16 @@ systemctl status k3s
 # via Vagrant shared folder
 cp /var/lib/rancher/k3s/server/token /vagrant_shared
 cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
+
+# allow incoming requests to ::6443 for clients to reach apiserver
+iptables -A INPUT -p tcp --dport 6443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 6443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
 ```
 - check
 ```sh
-kubectl get nodes
-kubectl get services
+alias k=kubectl
+k get nodes
+k get services
 ```
 - rewrite `Vagrantfile`
 ```ruby
@@ -73,6 +78,8 @@ server_provision = <<-SHELL
     sleep 10
     cp /var/lib/rancher/k3s/server/token /vagrant_shared
     cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
+    iptables -A INPUT -p tcp --dport 6443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+    iptables -A OUTPUT -p tcp --sport 6443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
 SHELL
 ```
 
@@ -88,6 +95,31 @@ vagrant ssh node0
 
 # as root
 sudo -i
+
+# install curl
+apt install curl
+
+# check vagrant / vbox guest shared folder
+ls -la /vagrant_shared
+
+# check network driver
+ip address # 192.168.56.110 -> eth1
+
+# 2 opts that let k3s knows it's installing worker node
+export K3S_TOKEN_FILE=/vagrant_shared/token
+export K3S_URL=https://192.168.56.100:6443
+export INSTALL_K3S_EXEC="--flannel-iface=eth1"
+
+# install k3s
+curl -sfL https://get.k3s.io | sh -
 ```
 - rewrite `Vagrantfile`
+```ruby
+node_provision = <<-SHELL
+    export K3S_TOKEN_FILE=/vagrant_shared/token
+    export K3S_URL=https://#{server_ip}:6443
+    export INSTALL_K3S_EXEC="--flannel-iface=eth1"
+    curl -sfL https://get.k3s.io | sh -
+SHELL
+```
 

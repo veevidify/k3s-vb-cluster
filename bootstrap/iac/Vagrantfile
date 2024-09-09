@@ -7,7 +7,7 @@ nodes = {
 
 server_provision = <<-SHELL
   apt-get -y --force-yes update
-  apt-get install -y wget curl vim tmux openssl git net-tools
+  apt-get install -y wget curl vim tmux openssl git net-tools conntrack
   export SERVER_IP=192.168.56.100
   export INSTALL_K3S_EXEC="--bind-address=$SERVER_IP --node-external-ip=$SERVER_IP --flannel-iface=eth1"
   curl -sfL https://get.k3s.io | sh -
@@ -15,11 +15,14 @@ server_provision = <<-SHELL
   sleep 10
   cp /var/lib/rancher/k3s/server/token /vagrant_shared
   cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
+  iptables -A INPUT -p tcp --dport 6443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+  iptables -A OUTPUT -p tcp --sport 6443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
 SHELL
 
 node_provision = <<-SHELL
   apt-get -y --force-yes update
-  apt-get install -y socat conntrack ipset vim tmux
+  apt-get install -y curl vim tmux
+  export K3S_URL=https://#{server_ip}:6443
 SHELL
 
 Vagrant.configure("2") do |config|
