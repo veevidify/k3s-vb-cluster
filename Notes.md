@@ -133,14 +133,27 @@ SHELL
 ```sh
 # host
 vagrant destroy
+rm shared/token
+rm shared/k3s.yaml
 vagrant up
 ```
 - fix the `rcvboxadd` using
 ```sh
+# skip vboxguest
 ./fix-startup.sh server
 ./fix-startup.sh node0
 ./fix-startup.sh node1
 ./fix-startup.sh node2
+
+# also for some reason shared folder overwrites
+vagrant ssh server
+
+# then
+sudo -i
+
+# root@server:~#
+cp /var/lib/rancher/k3s/server/token /vagrant_shared
+cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
 ```
 - checking everything running
 ```sh
@@ -149,6 +162,6 @@ vagrant ssh server
 # root@server:~#
 sudo -i
 kubectl get nodes
-kubectl get pods -o wide
+kubectl get pods -A -o wide
 ```
 
