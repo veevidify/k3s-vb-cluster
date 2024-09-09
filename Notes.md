@@ -128,3 +128,27 @@ node_provision = <<-SHELL
 SHELL
 ```
 
+### verify
+- recreate the cluster:
+```sh
+# host
+vagrant destroy
+vagrant up
+```
+- fix the `rcvboxadd` using
+```sh
+./fix-startup.sh server
+./fix-startup.sh node0
+./fix-startup.sh node1
+./fix-startup.sh node2
+```
+- checking everything running
+```sh
+vagrant ssh server
+
+# root@server:~#
+sudo -i
+kubectl get nodes
+kubectl get pods -o wide
+```
+

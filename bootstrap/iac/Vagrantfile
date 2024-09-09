@@ -1,4 +1,4 @@
-server_ip = "192.168.56.100"
+server_ip = "192.168.56.101"
 nodes = {
   "node0" => "192.168.56.110",
   "node1" => "192.168.56.111",
@@ -7,8 +7,11 @@ nodes = {
 
 server_provision = <<-SHELL
   apt-get -y --force-yes update
-  apt-get install -y wget curl vim tmux openssl git net-tools conntrack
-  export SERVER_IP=192.168.56.100
+  echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
+  echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+sudo apt-get -y install iptables-persistent
+  apt-get install -y wget curl vim tmux openssl git net-tools conntrack iptables-persistent
+  export SERVER_IP=#{server_ip}
   export INSTALL_K3S_EXEC="--bind-address=$SERVER_IP --node-external-ip=$SERVER_IP --flannel-iface=eth1"
   curl -sfL https://get.k3s.io | sh -
   echo "let k3s start .."
@@ -17,13 +20,16 @@ server_provision = <<-SHELL
   cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
   iptables -A INPUT -p tcp --dport 6443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
   iptables -A OUTPUT -p tcp --sport 6443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+  iptables-save > /etc/iptables/rules.v4
 SHELL
 
 node_provision = <<-SHELL
-    export K3S_TOKEN_FILE=/vagrant_shared/token
-    export K3S_URL=https://#{server_ip}:6443
-    export INSTALL_K3S_EXEC="--flannel-iface=eth1"
-    curl -sfL https://get.k3s.io | sh -
+  apt-get -y --force-yes update
+  apt-get install -y wget curl vim tmux openssl git net-tools conntrack
+  export K3S_TOKEN_FILE=/vagrant_shared/token
+  export K3S_URL=https://#{server_ip}:6443
+  export INSTALL_K3S_EXEC="--flannel-iface=eth1"
+  curl -sfL https://get.k3s.io | sh -
 SHELL
 
 Vagrant.configure("2") do |config|
