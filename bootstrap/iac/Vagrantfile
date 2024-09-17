@@ -9,7 +9,6 @@ server_provision = <<-SHELL
   apt-get -y --force-yes update
   echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
   echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
-sudo apt-get -y install iptables-persistent
   apt-get install -y wget curl vim tmux openssl git net-tools conntrack iptables-persistent
   export SERVER_IP=#{server_ip}
   export INSTALL_K3S_EXEC="--bind-address=$SERVER_IP --node-external-ip=$SERVER_IP --flannel-iface=eth1"
